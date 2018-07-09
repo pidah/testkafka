@@ -1,13 +1,9 @@
-package main
+package storage
 
 import (
 	"encoding/json"
 	"log"
 )
-
-func main() {
-	consumer("scrubbed")
-}
 
 func storePayload(data string) {
 	var objmap map[string]json.RawMessage
@@ -20,12 +16,6 @@ func storePayload(data string) {
 
 	couchbase(objmap)
 	storeUnloadPayload(objmap)
-}
-
-func storeUnloadPayload(obj map[string]json.RawMessage) {
-	if trimQuote(string(obj["action"])) == "UNLOAD" {
-		producer(obj, "unload")
-	}
 }
 
 func check(err error) {
