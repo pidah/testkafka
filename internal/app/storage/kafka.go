@@ -1,4 +1,4 @@
-package main
+package storage
 
 import (
 	"encoding/json"
@@ -29,7 +29,7 @@ func producer(job map[string]json.RawMessage, topic string) {
 	}
 }
 
-func consumer(topic string) {
+func Consumer(topic string) {
 	fmt.Println("Start receiving from Kafka")
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092",
@@ -58,4 +58,10 @@ func consumer(topic string) {
 
 	c.Close()
 
+}
+
+func storeUnloadPayload(obj map[string]json.RawMessage) {
+	if trimQuote(string(obj["action"])) == "UNLOAD" {
+		producer(obj, "unload")
+	}
 }
