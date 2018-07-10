@@ -1,27 +1,24 @@
 package storage
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-func producer(job map[string]json.RawMessage, topic string) {
+func producer(job []byte, topic string) {
 
 	fmt.Println("save to kafka")
 	fmt.Printf("save to kafka topic %s.\n", topic)
 
-	jsonString, err := json.Marshal(job)
-
-	jobString := string(jsonString)
-	fmt.Print(jobString)
+	jobString := string(job[:])
+	fmt.Println(jobString)
 
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost:9092"})
 	if err != nil {
 		panic(err)
 	}
 
-	for _, word := range []string{string(jobString)} {
+	for _, word := range []string{jobString} {
 		p.Produce(&kafka.Message{
 			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 			Value:          []byte(word),
@@ -48,7 +45,7 @@ func Consumer(topic string) {
 
 		if err == nil {
 			fmt.Printf("Received from Kafka %s: %s\n", msg.TopicPartition, string(msg.Value))
-			job := string(msg.Value)
+			job := msg.Value
 			storePayload(job)
 		} else {
 			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
@@ -58,10 +55,4 @@ func Consumer(topic string) {
 
 	c.Close()
 
-}
-
-func storeUnloadPayload(obj map[string]json.RawMessage) {
-	if trimQuote(string(obj["action"])) == "UNLOAD" {
-		producer(obj, "unload")
-	}
 }

@@ -2,34 +2,41 @@ package storage
 
 import (
 	"encoding/json"
-	"log"
+	"strconv"
 )
 
-func storePayload(data string) {
-	var objmap map[string]json.RawMessage
-	//	var unescapedJson []byte
-	//	enc := json.NewEncoder(os.Stdout)
-	err := json.Unmarshal([]byte(data), &objmap)
-	if err != nil {
-		log.Fatal(err)
+type Identifier struct {
+	Action     string
+	Cookie     string
+	Ptoken     string
+	Token      string
+	SequenceId int
+}
+
+func storePayload(rawData []byte) {
+	var i Identifier
+	objmap := (*json.RawMessage)(&rawData)
+	err := json.Unmarshal(*objmap, &i)
+
+	check(err)
+
+	// TODO ptoken to be dropped in the new version of the message format
+	if i.Ptoken == "" {
+		i.Ptoken = i.Token
 	}
 
-	couchbase(objmap)
-	storeUnloadPayload(objmap)
+	sequenceId := strconv.Itoa(i.SequenceId)
+	key := i.Cookie + "::" + i.Ptoken + "::" + sequenceId
+
+	couchbase(key, string(rawData))
+
+	if i.Action == "UNLOAD" {
+		producer(rawData, "unload")
+	}
 }
 
 func check(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func trimQuote(s string) string {
-	if len(s) > 0 && s[0] == '"' {
-		s = s[1:]
-	}
-	if len(s) > 0 && s[len(s)-1] == '"' {
-		s = s[:len(s)-1]
-	}
-	return s
 }

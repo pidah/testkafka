@@ -1,14 +1,11 @@
 package storage
 
 import (
-	"encoding/json"
 	"fmt"
 	"gopkg.in/couchbase/gocb.v1"
 )
 
-func couchbase(obj map[string]json.RawMessage) {
-
-	key := trimQuote(string(obj["cookie"])) + "::" + trimQuote(string(obj["ptoken"])) + "::" + string(obj["sequenceId"])
+func couchbase(key, obj string) {
 
 	cluster, _ := gocb.Connect("couchbase://localhost")
 	cluster.Authenticate(gocb.PasswordAuthenticator{
