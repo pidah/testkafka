@@ -13,6 +13,18 @@ type Identifier struct {
 	SequenceId int
 }
 
+// Storage interface that supports any database.
+type Storage interface {
+	Write()
+}
+
+// Generic function for concrete implementation of a database
+func DbWrite(s Storage) {
+	s.Write()
+}
+
+//Partially deserialize the JSON object to retrive Identifier fields only. Everywhere else we pass []bytes.
+
 func storePayload(rawData []byte) {
 	var i Identifier
 	objmap := (*json.RawMessage)(&rawData)
@@ -28,7 +40,8 @@ func storePayload(rawData []byte) {
 	sequenceId := strconv.Itoa(i.SequenceId)
 	key := i.Cookie + "::" + i.Ptoken + "::" + sequenceId
 
-	couchbase(key, string(rawData))
+	c := &Couchbase{key, string(rawData)}
+	DbWrite(c)
 
 	if i.Action == "UNLOAD" {
 		producer(rawData, "unload")

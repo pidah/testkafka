@@ -5,7 +5,12 @@ import (
 	"gopkg.in/couchbase/gocb.v1"
 )
 
-func couchbase(key, obj string) {
+type Couchbase struct {
+	key string
+	obj string
+}
+
+func (c *Couchbase) Write() {
 
 	cluster, _ := gocb.Connect("couchbase://localhost")
 	cluster.Authenticate(gocb.PasswordAuthenticator{
@@ -13,7 +18,7 @@ func couchbase(key, obj string) {
 		Password: "peteridah",
 	})
 	bucket, _ := cluster.OpenBucket("example", "")
-	_, err := bucket.Upsert(key, obj, 0)
-	_, err = fmt.Println(&obj)
+	_, err := bucket.Upsert(c.key, c.obj, 0)
 	check(err)
+	fmt.Printf("payload for key %s successfully stored in database\n", c.key)
 }
